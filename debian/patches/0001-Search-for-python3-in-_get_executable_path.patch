@@ -1,0 +1,26 @@
+From: Nicholas D Steeves <nsteeves@gmail.com>
+Date: Sun, 20 Dec 2020 21:53:19 -0500
+Subject: Search for python3 in _get_executable_path
+Forwarded: not-needed
+
+Python2 is no longer supported in Debian, and our virtual environments
+provide both bin/python and bin/python3.
+
+This change is required for Elpy's pytests to not fail due to missing /usr/bin/python.
+---
+ jedi/api/environment.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/jedi/api/environment.py b/jedi/api/environment.py
+index 89e4716..61f34f0 100644
+--- a/jedi/api/environment.py
++++ b/jedi/api/environment.py
+@@ -394,7 +394,7 @@ def _get_executable_path(path, safe=True):
+     if os.name == 'nt':
+         python = os.path.join(path, 'Scripts', 'python.exe')
+     else:
+-        python = os.path.join(path, 'bin', 'python')
++        python = os.path.join(path, 'bin', 'python3')
+     if not os.path.exists(python):
+         raise InvalidPythonEnvironment("%s seems to be missing." % python)
+ 

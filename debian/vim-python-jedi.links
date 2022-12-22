@@ -1,0 +1,9 @@
+usr/share/vim-python-jedi/after/ftplugin/python/jedi.vim /usr/share/vim/addons/after/ftplugin/python/jedi.vim
+usr/share/vim-python-jedi/after/syntax/python.vim        /usr/share/vim/addons/after/syntax/python.vim
+usr/share/vim-python-jedi/autoload/health/jedi.vim       /usr/share/vim/addons/autoload/health/jedi.vim
+usr/share/vim-python-jedi/autoload/jedi.vim              /usr/share/vim/addons/autoload/jedi.vim
+usr/share/vim-python-jedi/doc/jedi-vim.txt               /usr/share/vim/addons/doc/jedi-vim.txt
+usr/share/vim-python-jedi/ftplugin/python/jedi.vim       /usr/share/vim/addons/ftplugin/python/jedi.vim
+usr/share/vim-python-jedi/plugin/jedi.vim                /usr/share/vim/addons/plugin/jedi.vim
+usr/share/vim-python-jedi/pythonx/jedi_vim.py            /usr/share/vim/addons/pythonx/jedi_vim.py
+usr/share/vim-python-jedi/pythonx/jedi_vim_debug.py      /usr/share/vim/addons/pythonx/jedi_vim_debug.py

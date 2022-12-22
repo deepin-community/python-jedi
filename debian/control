@@ -1,0 +1,36 @@
+Source: python-jedi
+Maintainer: Piotr Ożarowski <piotr@debian.org>
+Section: python
+Priority: optional
+Build-Depends: debhelper-compat (= 13), dh-python,
+ python3-all,
+ python3-setuptools,
+ python3-pytest,
+ python3-unittest2,
+ python3-docopt,
+Standards-Version: 4.5.1
+Homepage: https://github.com/davidhalter/jedi
+
+Package: python3-jedi
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}, python3-parso (>= 0.3)
+Description: autocompletion tool for Python 3
+ Jedi is an autocompletion tool for Python. It works. With and without syntax
+ errors. Sometimes it sucks, but that's normal in dynamic languages. But it
+ sucks less than other tools. It understands almost all of the basic Python
+ syntax elements including many builtins.
+
+Package: vim-python-jedi
+Architecture: all
+Depends: python3-jedi, ${python3:Depends}, ${misc:Depends}, ${vim-addon:Depends},
+ vim-nox | vim-python3 | neovim
+Suggests: vim-addon-manager
+Description: autocompletion tool for Python - VIM addon files
+ Jedi is an autocompletion tool for Python. It works. With and without syntax
+ errors. Sometimes it sucks, but that's normal in dynamic languages. But it
+ sucks less than other tools. It understands almost all of the basic Python
+ syntax elements including many builtins.
+ .
+ To enable this addon in your (Neo)Vim use one of these two methods:
+  * Add "packadd! python-jedi" to your vimrc file
+  * Invoke: `vam install python-jedi` if you use Vim Addon Manager
