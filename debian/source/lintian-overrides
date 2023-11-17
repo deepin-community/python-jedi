@@ -1,0 +1,2 @@
+# source is available in test/examples/init_extension_module/module.c
+python-jedi source: source-is-missing [test/examples/init_extension_module/__init__.*

@@ -1,8 +1,8 @@
-python-jedi (0.18.0-1) UNRELEASED; urgency=medium
+python-jedi (0.18.2-1) unstable; urgency=medium
 
-  * update
+  * New upstream release.
 
- -- Piotr Ożarowski <piotr@debian.org>  Wed, 06 Jul 2022 14:43:03 +0800
+ -- Piotr Ożarowski <piotr@debian.org>  Sat, 10 Dec 2022 00:22:34 +0100
 
 python-jedi (0.18.0-1) unstable; urgency=medium
 

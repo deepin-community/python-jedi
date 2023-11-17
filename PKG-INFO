@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: jedi
-Version: 0.18.0
+Version: 0.18.2
 Summary: An autocompletion tool for Python that can be used for text editors.
 Home-page: https://github.com/davidhalter/jedi
 Author: David Halter
@@ -20,17 +20,9 @@ Description: ###################################################################
             :target: https://github.com/davidhalter/jedi/issues
             :alt: The resolution time is the median time an issue or pull request stays open.
         
-        .. image:: https://travis-ci.org/davidhalter/jedi.svg?branch=master
-            :target: https://travis-ci.org/davidhalter/jedi
-            :alt: Linux Tests
-        
-        .. image:: https://ci.appveyor.com/api/projects/status/mgva3bbawyma1new/branch/master?svg=true
-            :target: https://ci.appveyor.com/project/davidhalter/jedi/branch/master
-            :alt: Windows Tests
-        
-        .. image:: https://coveralls.io/repos/davidhalter/jedi/badge.svg?branch=master
-            :target: https://coveralls.io/r/davidhalter/jedi
-            :alt: Coverage status
+        .. image:: https://github.com/davidhalter/jedi/workflows/ci/badge.svg?branch=master
+            :target: https://github.com/davidhalter/jedi/actions
+            :alt: Tests
         
         .. image:: https://pepy.tech/badge/jedi
             :target: https://pepy.tech/project/jedi
@@ -241,6 +233,23 @@ Description: ###################################################################
         
         Unreleased
         ++++++++++
+        
+        0.18.2 (2022-11-21)
+        +++++++++++++++++++
+        
+        - Added dataclass-equivalent for attrs.define
+        - Find fixtures from Pytest entrypoints; Examples of pytest plugins installed
+          like this are pytest-django, pytest-sugar and Faker.
+        - Fixed Project.search, when a venv was involved, which is why for example
+          `:Pyimport django.db` did not work in some cases in jedi-vim.
+        - And many smaller bugfixes
+        
+        0.18.1 (2021-11-17)
+        +++++++++++++++++++
+        
+        - Implict namespaces are now a separate types in ``Name().type``
+        - Python 3.10 support
+        - Mostly bugfixes
         
         0.18.0 (2020-12-25)
         +++++++++++++++++++
@@ -544,9 +553,11 @@ Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Text Editors :: Integrated Development Environments (IDE)
 Classifier: Topic :: Utilities
 Requires-Python: >=3.6
+Provides-Extra: docs
 Provides-Extra: qa
 Provides-Extra: testing
