@@ -4,12 +4,14 @@ The Python parts of the Jedi library for VIM. It is mostly about communicating
 with VIM.
 """
 
+from typing import Optional
 import traceback  # for exception output
 import re
 import os
 import sys
 from shlex import split as shsplit
 from contextlib import contextmanager
+from pathlib import Path
 try:
     from itertools import zip_longest
 except ImportError:
@@ -216,11 +218,18 @@ _current_project_cache = None, None
 
 
 def get_project():
-    vim_environment_path = vim_eval("g:jedi#environment_path")
+    vim_environment_path = vim_eval(
+        "get(b:, 'jedi_environment_path', g:jedi#environment_path)"
+    )
     vim_project_path = vim_eval("g:jedi#project_path")
 
+    vim_added_sys_path = vim_eval("get(g:, 'jedi#added_sys_path', [])")
+    vim_added_sys_path += vim_eval("get(b:, 'jedi_added_sys_path', [])")
+
     global _current_project_cache
-    cache_key = dict(project_path=vim_project_path, environment_path=vim_environment_path)
+    cache_key = dict(project_path=vim_project_path,
+                     environment_path=vim_environment_path,
+                     added_sys_path=vim_added_sys_path)
     if cache_key == _current_project_cache[0]:
         return _current_project_cache[1]
 
@@ -234,7 +243,9 @@ def get_project():
     else:
         project_path = vim_project_path
 
-    project = jedi.Project(project_path, environment_path=environment_path)
+    project = jedi.Project(project_path,
+                           environment_path=environment_path,
+                           added_sys_path=vim_added_sys_path)
 
     _current_project_cache = cache_key, project
     return project
@@ -255,7 +266,7 @@ def choose_environment():
     vim_command(
         'setlocal buftype=nofile bufhidden=wipe noswapfile nobuflisted readonly nomodifiable')
     vim_command('noremap <buffer> <ESC> :bw<CR>')
-    vim_command('noremap <buffer> <CR> :PythonJedi jedi_vim.choose_environment_hit_enter()<CR>')
+    vim_command('noremap <buffer> <CR> :python3 jedi_vim.choose_environment_hit_enter()<CR>')
 
 
 @catch_and_print_exceptions
@@ -283,7 +294,9 @@ def load_project():
         project.save()
 
     global _current_project_cache
-    cache_key = dict(project_path=path, environment_path=env_path)
+    cache_key = dict(project_path=path,
+                     environment_path=env_path,
+                     added_sys_path=[])
     _current_project_cache = cache_key, project
 
 
@@ -314,6 +327,10 @@ def get_pos(column=None):
 @_check_jedi_availability(show_error=False)
 @catch_and_print_exceptions
 def completions():
+    jedi.settings.case_insensitive_completion = \
+        bool(int(vim_eval("get(b:, 'jedi_case_insensitive_completion', "
+                          "g:jedi#case_insensitive_completion)")))
+
     row, column = vim.current.window.cursor
     # Clear call signatures in the buffer so they aren't seen by the completer.
     # Call signatures in the command line can stay.
@@ -343,7 +360,9 @@ def completions():
             completions = script.complete(*get_pos(column))
             signatures = script.get_signatures(*get_pos(column))
 
-            add_info = "preview" in vim.eval("&completeopt").split(",")
+            add_info = \
+                any(option in vim.eval("&completeopt").split(",")
+                    for option in ("preview", "popup"))
             out = []
             for c in completions:
                 d = dict(word=PythonToVimStr(c.name[:len(base)] + c.complete),
@@ -418,21 +437,22 @@ def _goto_specific_name(n, options=''):
         if n.is_keyword:
             echo_highlight("Cannot get the definition of Python keywords.")
         else:
-            echo_highlight("Builtin modules cannot be displayed (%s)."
-                           % (n.full_name or n.name))
+            name = 'Namespaces' if n.type == 'namespace' else 'Builtin modules'
+            echo_highlight(
+                "%s cannot be displayed (%s)."
+                % (name, n.full_name or n.name)
+            )
     else:
         using_tagstack = int(vim_eval('g:jedi#use_tag_stack')) == 1
-        module_path = str(n.module_path or '')
-        if module_path != vim.current.buffer.name:
-            result = new_buffer(module_path, options=options,
-                                using_tagstack=using_tagstack)
-            if not result:
-                return []
-        if (using_tagstack and module_path and
-                os.path.exists(module_path)):
+        result = set_buffer(n.module_path, options=options,
+                            using_tagstack=using_tagstack)
+        if not result:
+            return []
+        if (using_tagstack and n.module_path and
+                n.module_path.exists()):
             tagname = n.name
             with tempfile('{0}\t{1}\t{2}'.format(
-                    tagname, module_path, 'call cursor({0}, {1})'.format(
+                    tagname, n.module_path, 'call cursor({0}, {1})'.format(
                         n.line, n.column + 1))) as f:
                 old_tags = vim.eval('&tags')
                 old_wildignore = vim.eval('&wildignore')
@@ -1050,14 +1070,10 @@ def do_rename(replace, orig=None):
         if r.in_builtin_module():
             continue
 
-        module_path = r.module_path
-        if os.path.abspath(vim.current.buffer.name) != str(module_path):
-            assert module_path is not None
-            result = new_buffer(module_path)
-            if not result:
-                echo_highlight('Failed to create buffer window for %s!' % (
-                    module_path))
-                continue
+        result = set_buffer(r.module_path)
+        if not result:
+            echo_highlight('Failed to create buffer window for %s!' % (r.module_path))
+            continue
 
         buffers.add(vim.current.buffer.name)
 
@@ -1103,7 +1119,17 @@ def py_import_completions():
 
 
 @catch_and_print_exceptions
-def new_buffer(path, options='', using_tagstack=False):
+def set_buffer(path: Optional[Path], options='', using_tagstack=False):
+    """
+    Opens a new buffer if we have to or does nothing. Returns True in case of
+    success.
+    """
+    path = str(path or '')
+    # Check both, because it might be an empty string
+    if path in (vim.current.buffer.name, os.path.abspath(vim.current.buffer.name)):
+        return True
+
+    path = relpath(path)
     # options are what you can to edit the edit options
     if int(vim_eval('g:jedi#use_tabs_not_buffers')) == 1:
         _tabnew(path, options)
@@ -1151,7 +1177,6 @@ def _tabnew(path, options=''):
 
     :param options: `:tabnew` options, read vim help.
     """
-    path = os.path.abspath(path)
     if int(vim_eval('has("gui")')) == 1:
         vim_command('tab drop %s %s' % (options, escape_file_path(path)))
         return
@@ -1166,7 +1191,7 @@ def _tabnew(path, options=''):
                 # don't know why this happens :-)
                 pass
             else:
-                if buf_path == path:
+                if os.path.abspath(buf_path) == os.path.abspath(path):
                     # tab exists, just switch to that tab
                     vim_command('tabfirst | tabnext %i' % (tab_nr + 1))
                     # Goto the buffer's window.

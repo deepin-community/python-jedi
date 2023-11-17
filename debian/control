@@ -2,7 +2,7 @@ Source: python-jedi
 Maintainer: Piotr Ożarowski <piotr@debian.org>
 Section: python
 Priority: optional
-Build-Depends: debhelper-compat (= 13), dh-python,
+Build-Depends: debhelper-compat (= 13), dh-python, dh-sequence-vim-addon,
  python3-all,
  python3-setuptools,
  python3-pytest,
